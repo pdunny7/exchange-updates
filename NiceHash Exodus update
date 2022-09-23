@@ -533,7 +533,7 @@ updates = [
             },
             {
                 "question": "What Is the PPS Reward System?",
-                "answer": "PPS stands for ""pay-per-share."" This means the miner is paid for each valid contributed share. PPS ensures that providers are paid in full for all the high-quality work produced by their rigs. Buyers will only pay 100%% for work submitted to buyers' pools.",
+                "answer": "PPS stands for ""pay-per-share."" This means the miner is paid for each valid contributed share. PPS ensures that providers are paid in full for all the high-quality work produced by their rigs. Buyers will only pay 100% for work submitted to buyers' pools.",
             },
             {
                 "question": "How much can you earn in NiceHash?",
