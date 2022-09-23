@@ -1,0 +1,638 @@
+from sqlalchemy.orm.attributes import flag_modified
+
+from app import db
+from app.models.account_types_ex import AccountTypeEx
+
+
+updates = [
+    {
+        "slug": "binance",
+        "thumbnail_image_url": "https://coin-tracker-public.s3.us-west-1.amazonaws.com/static/images/exchanges/thumbnails/binance.png",
+    },
+    {
+        "slug": "cryptocom-exchange",
+        "thumbnail_image_url": "https://coin-tracker-public.s3.us-west-1.amazonaws.com/static/images/exchanges/thumbnails/cryptocom.png",
+    },
+    {
+        "slug": "metamask",
+        "description": """
+            <h2>What is Metamask?</h2>
+            <p>Metamask is a browser extension that is also an Ethereum wallet. Users can store Ethereum or any ERC-20 token in Metamask and use it to interact with Web2 and Web3 sites and Decentralized apps (Dapps) that use an ETH wallet.
+            It only takes a few minutes to setup a <a href="https://www.youtube.com/watch?v=GNPz-Dv5BjM">Metamask wallet</a>. Metamask has over 21 million monthly users as of August 2022. You can transfer ETH directly to Metamask from other wallets/exchanges, or use Metamasks' partners to <a href="https://metamask.zendesk.com/hc/en-us/articles/360058239311-Directly-buying-tokens-with-on-ramps-in-MetaMask">directly buy ETH</a>.</p>
+            <h2>How are Metamask transactions taxed?</h2>
+            <p>How crypto transactions are taxed will depend on factors such as how and when the assets were received and spent. Read our <a href="https://www.cointracker.io/blog/crypto-tax-guide">Crypto tax guide</a> for more.</p>
+            <h2>What does Metamask provide?</h2>
+            <p>Metamask does not provide a 1099, end of year financial statement, or tax report. In addition, Metamask does not report directly to the IRS. Metamask doesn't collect users' personal information so is unable to generate any of these statements. Users can link their ETH public address in CoinTracker to manage their portfolio and generate tax forms.</p>
+            <h2>How does CoinTracker work with Metamask?</h2>
+            <p>CoinTracker automatically imports Metamask transactions from your public address.  For more, check out <a href="">How to add my MetaMask Wallet</a> in our Help Center.</p>
+            """,
+        "faqs": [
+            {
+                "question": "Is Metamask safe?",
+                "answer": "Metamask is trusted by tens of millions of users and is one of the most popular crypto wallets out there. However, Metamask is a hot wallet i.e. a wallet connected to the internet, with your private keys stored in the application in your browser. So someone who hacks into your computer would have access to your wallet. In addition, all users should be vigilant about avoiding crypto scams and phishing attempts. <br /><br />All in all, there have been no major hacks of Metamask to date and a fairly active user/development community supporting it.",
+            },
+        ],
+    },
+    {
+        "slug": "bitmex",
+        "hide_instructions": True,
+        "description": """
+            <h2>What is BitMEX?</h2>
+            <p>
+                BitMEX launched in November 2014 and is registered in the Seychelles. The company started its XBT-USD perpetual swap in 2016. BitMEX calls itself a trading platform that offers investors access to the global financial markets using Bitcoin and other cryptocurrencies. BitMEX was built by finance professionals with more than 40 years of combined experience and offers a comprehensive API. BitMEX is owned by HDR Global Trading Limited.<br /><br />
+                In addition to Bitcoin and XBT-USD, BitMEX supports Ether, Tether and ERC-20 coins. BitMEX allows users to stake its own token, BMEX. BitMEX is not available to anyone with <a href="https://bitmex.freshdesk.com/en/support/solutions/articles/13000089730-what-happens-if-i-have-dual-nationality-">U.S. citizenship</a>. The <a href="https://www.cftc.gov/PressRoom/PressReleases/8522-22">U.S. Commodity Futures Trading Commission</a> has imposed fines of $10 million on each of BitMEX's founders for violating anti-money laundering laws. The company also was criminally indicted in 2020 by federal prosecutors in the U.S. <br /><br />
+                The company boasts low fees, and it says its "sophisticated margin and liquidation process" prevents any user's margin balance from going negative. BitMEX says it stores all Bitcoin in a cold multi-signature wallet. BitMEX stores other assets in hot and cold wallets.
+            </p>
+            <h2>How are BitMEX transactions taxed?</h2>
+            <p>How crypto transactions are taxed will depend on factors such as how and when the assets were received and spent. Read our <a href="https://www.cointracker.io/blog/crypto-tax-guide">Crypto tax guide</a> for more.</p>
+            <h2>What does BitMEX provide?</h2>
+            <p>
+                BitMEX doesn't provide a tax report or end of year tax statement. Since BitMEX doesn't do business with US Taxpayers, there is no reporting to the IRS. BitMEX also has not disclosed whether it reports to other tax authorities.<br/><br/>
+                BitMEX lets users download trade history in CSV format by clicking the "Save to CSV" button in the top right corner of the Trade History page. Users can find staking records in the wallet transaction history. Users can import these into CoinTracker to get an overview of their wallet activity and generate tax forms.
+            </p>
+            <h2>How does CoinTracker work with BitMEX?</h2>
+            <ol> <li>Open the BitMEX <strong><a href="https://www.bitmex.com/app/apiKeys" target="_blank" rel="noopener noreferrer">API Keys<i class="fas fa-external-link-alt ml-1" aria-hidden="true"></i></a></strong> page</li> <li>Enter a name for the API key, such as <strong>CoinTracker</strong></li> <li><strong class="text-muted mr-2 small">RECOMMENDED</strong> Leave <strong>Key Permissions</strong> blank and <strong>Withdraw</strong> unchecked</li> <li>Click the <strong>Create API Key</strong> button</li> <li>Copy the <strong>API Key</strong> and <strong>Secret</strong></li> </ol>
+            <div class="mt-4 mb-3">
+                <a class="btn btn-primary px-5" href="/add_wallet?t=bitmex">Add BitMEX Account</a>
+            </div>
+            """,
+    },
+    {
+        "slug": "pancakeswap",
+        "nice_name": "PancakeSwap",
+        "website_url": "https://pancakeswap.finance/",
+        "image_url": "",
+        "hide_instructions": True,
+        "description": """
+            <h2>What is PancakeSwap?</h2>
+            <p>
+                PancakeSwap is a decentralized exchange (DEX) with a twist — it runs on the Binance Smart Chain (BSC) and lets users trade BEP-20 tokens and many other digital assets. Launched in 2020, PancakeSwap also allows investors to earn the exchange's native token, CAKE, and liquidity pool tokens. The site offers an <a href="https://www.cointracker.io/nfts/">NFT</a> exchange as well.<br/><br/>
+                A DEX is unique because there is no centralized market maker. Instead, users provide liquidity for different crypto assets through liquidity pools. The exchange executes smart contracts which enable swapping of different assets in different pools. The users that provide liquidity, aka liquidity providers, earn rewards as a percentage of the transaction fees in exchange for providing liquidity.<br/><br/>
+                CAKE is the native utility token for PancakeSwap. It's mainly used for yield farming, staking, and for <a href="https://pancakeswap.finance/voting">governance</a>.  Users can also use CAKE for things like Initial Farm Offerings (IFO) where CAKE gets exchanges for a new token from an early-stage project. Another unique feature of PancakeSwap is lotteries - users can use CAKE to buy tickets to win a large amount of CAKE.<br/><br/>
+                PancakeSwap also maintains a <a href="https://docs.pancakeswap.finance/roadmap">public roadmap</a> so you can see what else is being built.<br/><br/>
+                With its variety of trading opportunities for DeFi investors, PancakeSwap creates plenty of opportunities for users to make money — and to face <a href="https://www.cointracker.io/blog/crypto-tax-guide">tax liabilities on their crypto activity</a>. CoinTracker can help PancakeSwap users manage and simplify tax reporting.<br/><br/>
+            </p>
+            <h2>How are PancakeSwap transactions taxed?</h2>
+            <p>
+                How crypto transactions are taxed will depend on factors such as how and when the assets were received and spent. Read our <a href="https://www.cointracker.io/blog/crypto-tax-guide">Crypto tax guide</a> for more.
+            </p>
+            <h2>What does PancakeSwap provide?</h2>
+            <p>
+                PancakeSwap is a DEX and doesn't have a centralized market maker or order book. As a result, it doesn't report transactions to the IRS or provide 1099's or transaction statements. Users can compile transaction data via the exchange's CSV or API tools. Even though PancakeSwap doesn't report directly to tax authorities, users are still responsible for paying taxes on crypto transactions through PancakeSwap.
+            </p>
+            <h2>How does CoinTracker work with PancakeSwap?</h2>
+            <p>
+                PancakeSwap transactions can be pulled into CoinTracker by adding your Binance Smart Chain address to CoinTracker. You can do so by following the instructions <a href="https://www.cointracker.io/exchanges/bsc">here</a>
+            </p>
+            """,
+        "faqs": [
+            {
+                "question": "What is CAKE?",
+                "answer": "CAKE is the native utility token for PancakeSwap. It's mainly used for yield farming, staking, and for <a href='https://pancakeswap.finance/voting'>governance</a>. PancakeSwap offers a variety of benefits and features to CAKE holders.",
+            },
+            {
+                "question": "What are Initial Farm Offerings (IFOs)?",
+                "answer": "IFOs are another way for early stage token projects to raise funds. A DEX like PancakeSwap will evaluate a new project and then setup an IFO on behalf of that project. In PancakeSwap, users have to provide CAKE-BNB liquidity to earn CAKE-BNB LP tokens. These tokens can then be used to participate in IFOs. The LP will then earn the new token, the IFO project will earn BNB, and PancakeSwap destroys the CAKE tokens.",
+            },
+            {
+                "question": "What is Yield Farming?",
+                "answer": "Check out our <a href='https://www.cointracker.io/blog/defi-yield-farming-crypto-tax-guide'>yield farming tax guide</a> for more information. In PancakeSwap, you can provide liquidity in a liquidity pool, which will give you more of the asset you staked (depending on APY). By Yield farming, you are staking one asset to earn more of another type of asset.",
+            },
+            {
+                "question": "What are PancakeSwap Prediction Markets?",
+                "answer": "Users can bet a portion of their assets to guess whether the price of BNB will be higher or lower in a five minute window. Correct bets get a split of the prize pool, while incorrect bets will forfeit their bet amount. ",
+            },
+            {
+                "question": "What is the difference between BEP-20 and ERC-20? ",
+                "answer": "ERC-20 is an Ethereum-based token standard that describes how to create tokens for the Ethereum blockchain. Similarly, BEP-20 is the specification for creating tokens on the Binance Smart Chain (BSC). BSC uses a proof of stake authority (POSA) method to verify transactions, which is much cheaper and faster than Ethereum-chain transactions. The criticism levied on BSC/BEP-20 transactions is weaker decentralization. BSC relies on ~20 validators for a block vs. ETH using 70k+ validators.<br/><br/>It's important to note that you cannot transfer BEP-20 tokens into ERC-20 tokens directly. You have to use a Bridge service like <a href='https://www.bnbchain.org/en/bridge'>Binance Bridge</a> to wrap the tokens. This is reversible when you want to un-wrap and send them back to the originating wallet/chain. ",
+            },
+            {
+                "question": "Is PancakeSwap safe?",
+                "answer": "PancakeSwap is open-source and has been audited by firms like Certik and Slowmist. However, users should always be careful to double-check actions when using a DEX. In addition, there's always a risk that new tokens gotten by staking/pools end up worthless, but that applies to all new coins independent of PancakeSwap.",
+            },
+        ],
+    },
+    {
+        "slug": "yoroi",
+        "nice_name": "Yoroi",
+        "website_url": "https://yoroi-wallet.com/",
+        "image_url": "",
+        "hide_instructions": False,
+        "show_as_exchange_page": True,
+        "description": """
+            <h2>What is Yoroi?</h2>
+            <p>
+                Yoroi was created in 2018 with the initial goal of providing a light wallet for <a href="https://cardano.org/">Cardano</a> (ADA) holders to store their cryptocurrency. With over 50,000 users in 4 years, the Yoroi wallet now also supports <a href="https://www.cointracker.io/price/ergo">ERG</a>—<a href="https://ergoplatform.org/en/">Ergo</a>'s native token.<br/><br/>
+                Yoroi was created by <a href="https://emurgo.io/">EMURGO</a>—a technology company, providing blockchain solutions for firms, developers, startups, and governments, and one of Cardano's three founding entities.<br/><br/>
+                Although the Yoroi wallet is <a href="https://yoroi-wallet.com/">light</a>, users still have access to essential wallet functions, like staking for a chance to earn more crypto and <a href="https://www.irs.gov/pub/irs-drop/rr-19-24.pdf">airdrops</a>. Yoroi has also been actively exploring <a href="https://www.cointracker.io/blog/defi-yield-farming-crypto-tax-guide">DeFi</a> solutions for the Cardano ecosystem.<br/><br/>
+                Yoroi is a light wallet, which means downloading a full copy of the blockchain isn't necessary for the wallet to work correctly. This makes it super quick for wallet users to verify the reception of transactions.
+            </p>
+            <h2>How are Yoroi transactions taxed?</h2>
+            <p>
+                How crypto transactions are taxed will depend on factors such as how and when the assets were received and spent. Read our <a href="https://www.cointracker.io/blog/crypto-tax-guide">Crypto tax guide</a> for more.
+            </p>
+            <h2>What does Yoroi provide?</h2>
+            <p>
+                Yoroi doesn't provide tax statements or financial statements or directly report to tax authorities. However, users can download their transaction history and import it into CoinTracker to calculate taxable gains/losses.
+
+                Tracking your Yoroi crypto portfolio with a platform like <a href="https://www.cointracker.io/">CoinTracker</a> can help understand your wallet transactions and financial position. You can also generate a full tax report for filing end-of-year taxes.
+            </p>
+            <h2>How does CoinTracker work with Yoroi?</h2>
+            <p>
+                CoinTracker currently accepts CSV uploads of Yoroi transactions, which can be generated in the top right of the Transactions tab to Yoroi's desktop view. You must convert this CSV into the <a href="https://support.cointracker.io/hc/en-us/articles/4413071299729-Converting-transaction-history-CSVs-to-the-CoinTracker-CSV-format">generic CoinTracker CSV format</a>. To track updates on an upgraded integration with Yoroi, follow along on our <a href="https://feedback.cointracker.io/integrations/p/cardano-ada-hd-wallets-fex-daedalus-yoroi">feedback page</a>.
+            </p>
+            """,
+        "faqs": [
+            {
+                "question": "What type of wallet is Yoroi?",
+                "answer": "Yoroi wallet is a light <a href='https://en.bitcoin.it/wiki/Deterministic_wallet'>HD (hierarchical deterministic)</a>, open-source wallet that can run as a browser extension or an app. In an HD wallet, separate public addresses are bound together by your private key in a hierarchical, tree-like structure.  Yoroi started as a wallet specific to <a href='https://www.cointracker.io/price/cardano'>Cardano</a> (ADA) and later added Ergo (ERG).",
+            },
+            {
+                "question": "Is Yoroi a cold wallet?",
+                "answer": "Yoroi is a hot wallet—a soft wallet that is connected to the internet. A cold wallet, by contrast, isn't connected to the internet. The security benefits of a cold wallet can be added to Yoroi by opening a wallet via a hard wallet device such as Ledger or Trezor, where your private keys will be kept offline.",
+            },
+            {
+                "question": "How does Yoroi wallet work?",
+                "answer": "Yoroi works as a light wallet that connects to a full <a href='https://docs.cardano.org/core-concepts/cardano-node/#:~:text=The%20Cardano%20node%20is%20the,blocks%20by%20means%20of%20consensus.'>Cardano node</a> hosted by Emurgo. Yoroi doesn't synchronize a full copy of the blockchain but syncs with Emurgo's servers, enabling speedier operation than running a full Cardano node yourself. Within Yoroi, users can send and receive ADA and Cardano native assets and connect to dApps.",
+            },
+        ],
+    },
+    {
+        "slug": "gemini",
+        "nice_name": "Gemini",
+        "website_url": "https://www.gemini.com/",
+        "image_url": "",
+        "hide_instructions": True,
+        "description": """
+            <h2>What is Gemini?</h2>
+            <p>
+                Gemini is a centralized cryptocurrency exchange formally known as Gemini Trust Company, LLC. It was founded in 2014 by twin brothers Cameron and Tyler Winklevoss. The company has over 13.6 million users.<br></br>
+                Gemini supports about 60+ different cryptocurrencies and several fiat currencies like USD, EUR, CAD, GBP, etc. The major coins supported on the exchange include Bitcoin (BTC), Ethereum (ETH), Litecoin, AAVE, Dai, Zcash, Bitcoin Cash, LINK, Gemini Dollar (GUSD) and UNISWAP(UNI), amongst others. <br></br>
+                Gemini allows trading, futures contracts, buying, selling, depositing and withdrawals. It also comes with unique features like Gemini Pay (a payment platform for purchases), Gemini Earn (for saving, lending and deposits) and Third-party Integrations (which allows traders within institutions and those managing funds to integrate easily with other software tools.<br/><br/>
+            </p>
+            <h2>How are Gemini transactions taxed?</h2>
+            <p>
+                How crypto transactions are taxed will depend on factors such as how and when the assets were received and spent. Read our <a href="https://www.cointracker.io/blog/crypto-tax-guide">Crypto tax guide</a> for more.
+            </p>
+            <h2>What does Gemini provide?</h2>
+            <p>
+                Gemini provides a Form 1099-MISC to users. Users can either check their transaction history or download a tax report from the exchange itself to get a financial statement or a breakdown of all their transactions.<br></br>
+                In addition to the above, Gemini reports to the IRS (Internal Revenue Service) and the NYDFS (New York State Department of Financial Services) as a centralized exchange. <br></br>
+            </p>
+            <h2>How does CoinTracker work with Gemini?</h2>
+            <p>
+                CoinTracker automatically syncs with Gemini's API. Connect your account to see your historical purchases and balances.
+            </p>
+            <h2>Connecting your Gemini account to CoinTracker</h2>
+                <div class="instructions api-importer">
+                    <ol class="mb-5">
+                        <li>Open the <a href="https://exchange.gemini.com/settings/api" target="_blank" rel="noopener noreferrer">Gemini API Settings</a> page.</li>
+                        <li>Select <strong>Primary</strong> as scope.</li>
+                        <li>Select <strong>Create a New API Key</strong>.</li>
+                        <li>If applicable, enter your two-factor authentication code</li>
+                        <li>Copy the API Key and API Secret</li>
+                        <li>Under API Key Settings, disable Trading and enable Auditor</li>
+                        <li>Select the checkbox indicating that you've copied the API secret and select Confirm</li>
+                    </ol>
+                </div>
+            <div class="instructions file-importer">
+                To add your Gemini earn transactions:
+                <ol class="mb-3">
+                    <li>Visit <strong><a href="https://exchange.gemini.com/balances" target="_blank" rel="noopener noreferrer">Gemini balances page<svg class="svg-inline--fa fa-external-link-alt fa-w-18 ml-1" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="external-link-alt" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" data-fa-i2svg=""><path fill="currentColor" d="M576 24v127.984c0 21.461-25.96 31.98-40.971 16.971l-35.707-35.709-243.523 243.523c-9.373 9.373-24.568 9.373-33.941 0l-22.627-22.627c-9.373-9.373-9.373-24.569 0-33.941L442.756 76.676l-35.703-35.705C391.982 25.9 402.656 0 424.024 0H552c13.255 0 24 10.745 24 24zM407.029 270.794l-16 16A23.999 23.999 0 0 0 384 303.765V448H64V128h264a24.003 24.003 0 0 0 16.97-7.029l16-16C376.089 89.851 365.381 64 344 64H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V287.764c0-21.382-25.852-32.09-40.971-16.97z"></path></svg><!-- <i class="fas fa-external-link-alt ml-1" aria-hidden="true"></i> --></a></strong></li>
+                    <li>Select the <strong>Download icon</strong> &gt; <strong>Earn history (XLSX)</strong></li>
+                    <li>Set the dates to cover your full earn transaction history, Click <strong>Download .xlsx</strong></li>
+                    <li>Import the XLSX here</li>
+                </ol>
+            </div>
+
+            <div class="mt-4 mb-3">
+                <a class="btn btn-primary px-5" href="/add_wallet?t=gemini">Add Gemini Account</a>
+            </div>
+            """,
+        "faqs": [
+            {
+                "question": "What is Gemini Earn?",
+                "answer": "Gemini Earn allows users to lend their cryptocurrencies. Interest is paid daily and starts to get processed once funds have been moved to Gemini Earn.",
+            },
+            {
+                "question": "Who are the founders of the exchange?",
+                "answer": "The founders of Gemini Exchange are Tyler and Cameron Winklevoss.",
+            },
+            {
+                "question": "What fees does Gemini charge?",
+                "answer": "There is a fixed fee that traders on the platform pay depending on transaction size. A fixed fee applies to trades under $200 or under 1.49%, and a different fixed fee for trades over $200 and 3.49% of credit or debit on card purchases. See <a href='https://www.gemini.com/fees'>Gemini Fees</a> for full details.",
+            },
+            {
+                "question": "Is Gemini FDIC insured?",
+                "answer": "Yes, Gemini is FDIC insured up to the $250,000 limit. Note that this only applies to actual USD in the account, and not to cryptocurrencies or stablecoins linked to USD. ",
+            },
+            {
+                "question": "What other security features does Gemini offer?",
+                "answer": "Gemini has other security features like two-step verification, cold storage, Gemini wallet digital insurance and U2F security with a hardware key.",
+            },
+            {
+                "question": "In what countries does Gemini currently operate?",
+                "answer": "Currently, Gemini operates in over 60 countries (including all 50 states in the U.S.).",
+            },
+        ],
+    },
+    {
+        "slug": "blockchain.com",
+        "nice_name": "Blockchain.com",
+        "website_url": "https://blockchain.com/",
+        "image_url": "https://coin-tracker-public.s3-us-west-1.amazonaws.com/static/images/exchanges/blockchaincom.svg",
+        "hide_instructions": True,
+        "description": """
+            <h2>What is Blockchain.com?</h2>
+            <p>
+                In the early days, <a href="http://blockchain.com/">Blockchain.com</a> was known as <a href="http://blockchain.info/">Blockchain.info</a> and was the very first Bitcoin Blockchain Explorer. Its primary purpose was to keep track of all bitcoin trades.<br></br>
+                Asides from this primary role, <a href="http://blockchain.info/">Blockchain.info</a>'s API also gave companies the freedom to build on Bitcoin.<br></br>
+                The exchange and wallet provider renamed itself <a href='http://blockchain.com/'>Blockchain.com</a> in 2012 and became one of the biggest crypto-wallet providers, allowing users to hold multiple cryptocurrencies at once.<br></br>
+                Blockchain.com recorded over <a href="https://www.statista.com/statistics/647374/worldwide-blockchain-wallet-users/">81 million wallet users as of 2022</a> and 84 million wallets created since the platform began operating.<br></br>
+                The Blockchain.com Wallet supports several cryptocurrencies, including Bitcoin (BTC), Ethereum (ETH), Bitcoin Cash (BCH), Stacks, Stellar Lumens (XLM), and most ERC-20 tokens.<br></br>
+                It also supports major <a href="https://support.cointracker.io/hc/en-us/articles/4413079083153-Decentralized-Finance-DeFi-Guide">DeFi</a> tokens like Polkadot (DOT), Aave (AAVE), and Yearn Finance (YFI). Additionally, a 'Reward Account' feature is available to eligible wallet users, giving them a chance to earn rewards for storing cryptocurrency—but not in the same way as <a href="https://www.cointracker.io/blog/eth2-and-crypto-taxes">staking</a>.<br></br>
+                <div class="d-flex flex-column align-items-center"><img style="max-width: 300px" src="https://cdn.letterdrop.co/pictures/c503b5a8-95b2-43b0-8ac3-82ed2460d382.png">Blockchain.com Wallet | Source: Blockchain.com</div></img><br></br>
+                We'll look at how Blockchain.com Wallet transactions are taxed, how to stay on top of tax reports, and how to monitor financial statements.
+            </p>
+            <h2>How are Blockchain.com transactions taxed?</h2>
+            <p>
+                How crypto transactions are taxed will depend on factors such as how and when the assets were received and spent. Read our <a href="https://www.cointracker.io/blog/crypto-tax-guide">Crypto tax guide</a> for more.
+            </p>
+            <h2>What does Blockchain.com provide?</h2>
+            <p>
+                Blockchain.com doesn't provide 1099s or a financial statement. However, they do provide full transaction history which you can download from the <a href="https://support.blockchain.com/hc/en-us/articles/4556094198172-How-do-I-use-the-Wallet-Tax-Center-to-prepare-my-taxes-">Tax Center</a> and import into CoinTracker.<br></br>
+                First-time users can get a free tax report on CoinTracker for up to 500 transactions and a 10% discount on tax plans for multiple exchanges and wallets. Simply sign up through <a href="https://www.cointracker.io/blockchain">https://www.cointracker.io/blockchain</a>.
+            </p>
+            <h2>How does CoinTracker work with Blockchain.com?</h2>
+            <p>
+                <h2 class="h4 mb-4">
+                Connecting your Blockchain.com Wallet (private-key wallets CSV only) account to CoinTracker
+                </h2>
+                <ol class="mb-5">
+                <li>Log in to your <strong><a href="https://blockchain.com" target="_blank" rel="noopener noreferrer">blockchain.com wallet<svg class="svg-inline--fa fa-external-link-alt fa-w-18 ml-1" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="external-link-alt" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" data-fa-i2svg=""><path fill="currentColor" d="M576 24v127.984c0 21.461-25.96 31.98-40.971 16.971l-35.707-35.709-243.523 243.523c-9.373 9.373-24.568 9.373-33.941 0l-22.627-22.627c-9.373-9.373-9.373-24.569 0-33.941L442.756 76.676l-35.703-35.705C391.982 25.9 402.656 0 424.024 0H552c13.255 0 24 10.745 24 24zM407.029 270.794l-16 16A23.999 23.999 0 0 0 384 303.765V448H64V128h264a24.003 24.003 0 0 0 16.97-7.029l16-16C376.089 89.851 365.381 64 344 64H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V287.764c0-21.382-25.852-32.09-40.971-16.97z"></path></svg><!-- <i class="fas fa-external-link-alt ml-1" aria-hidden="true"></i> --></a></strong></li>
+                <li>Click on the crypto on the right you want to import into CoinTracker</li>
+                <li>If you have any balance for the selected crypto, you will see a "Download" button. Click on this button.</li>
+                <li>You will be asked to select a range of dates you want to download your transactions for. Make sure you select the period that covers your entire transaction history for the crypto on Blockchain.com</li>
+                <li>Click on "Generate Report". This button will change to "Download Report" once the report is read. Download this file</li>
+                <li>Upload the file you just downloaded using the form on the left</li>
+                <li>Make sure you repeat the process for all the cryptos you are storing on the Blockchain.com wallet</li>
+                <li>Upload the file to CoinTracker.</li>
+                </ol>
+                <div class="mt-4 mb-3">
+                <a class="btn btn-primary px-5" href="/add_wallet?t=blockchain-com-wallet">Add Blockchain.com Wallet (private-key wallets CSV only) Account</a>
+                </div>
+            </p>
+        """,
+        "faqs": [
+            {
+                "question": "How do I prepare my Blockchain.com taxes?",
+                "answer": "You can generate tax reports for your Blockchain.com Wallet with the help of <a href='https://support.blockchain.com/hc/en-us/articles/4556094198172-How-do-I-use-the-Wallet-Tax-Center-to-prepare-my-taxes-'>CoinTracker</a>, and go on to prepare your taxes based on your crypto transactions. A significant benefit is that you'll have access to free tax reporting for up to 500 transactions from your Blockchain.com Wallet.",
+            },
+            {
+                "question": "What kind of wallet is Blockchain.com?",
+                "answer": "Blockchain.com offers two kinds of accounts. There are Private Key Wallets, which are non-custodial. The user completely controls this type of wallet and the platform will have no access to your private wallet.<br></br><a href='http://Blockchain.com'>Blockchain.com</a> also offers Trading Accounts, which are custodial i.e. Blockchain.com stores the balance and keys for you. See <a href='https://support.blockchain.com/hc/en-us/articles/360051018031-Technical-differences-between-the-Private-Key-Wallet-and-Trading-Account'>this article</a> for more information.",
+            },
+            {
+                "question": "Does Blockchain.com offer exchange services?",
+                "answer": "Blockchain.com also operates one of the biggest cryptocurrency exchanges. Investors can trade cryptocurrency for assets e.g. other digital currency or even fiat money. The Blockchain.com Exchange accepts payments from credit cards, bank transfers, and transfers from your Blockchain.com Wallet.",
+            },
+            {
+                "question": "What other services does Blockchain.com provide?",
+                "answer": "Blockchain.com also acts as a blockchain explorer. In addition, the platform provides some more services leaning towards financial investors under the <b>Blockchain.com Institutional Markets business.</b><br></br>These services include:<ul><li>OTC spot trading<li>OTC derivatives trading<li>Lending</ul>",
+            },
+            {
+                "question": "What fiat currencies are supported?",
+                "answer": "The Blockchain.com Wallet and Exchange allow you to buy crypto with USD, GBP, and EUR. You can also swap crypto-to-crypto.<br></br>Blockchain.com wallet allows you to buy crypto with the currency of any country where the platform operates. Blockchain.com Wallet supports <a href='https://support.blockchain.com/hc/en-us/articles/4523154619412-What-countries-does-Blockchain-com-support-for-buying-and-selling-crypto-'>over 100 countries</a>.",
+            },
+            {
+                "question": "What is a Reward Account?",
+                "answer": "The Reward Account is a crypto storage facility available to eligible Blockchain.com Wallet users. It's a feature of the wallet where rewards can be earned on the amount transferred into it. This shouldn't be mistaken for <a href='https://www.cointracker.io/blog/staking-questions-idex'>staking</a>, where the participants give up a part of their cryptocurrency to provide liquidity and earn rewards. With a Reward Account, Blockchain.com lends the crypto saved to vetted institutions and earns interest on it.",
+            },
+            {
+                "question": "What's the difference between the Blockchain.com Wallet and a Bitcoin Wallet?",
+                "answer": "The Blockchain.com Wallet allows users to store multiple cryptocurrencies, including Bitcoin, Ethereum (ETH), and more. On the other hand, a bitcoin wallet would be limited to bitcoin (BTC) and be able to store only that cryptocurrency.",
+            },
+            {
+                "question": "Does Blockchain.com have an app?",
+                "answer": "Yes. The Blockchain.com Wallet and the Blockchain.com Exchange are both available as apps on iOS and Android.",
+            },
+        ],
+    },
+    {
+        "slug": "bittrex",
+        "nice_name": "Bittrex",
+        "website_url": "https://bittrex.com/",
+        "image_url": "https://s3-us-west-1.amazonaws.com/coin-tracker-public/static/images/exchanges/bittrex.png",
+        "hide_instructions": True,
+        "description": """
+            <h2>What is Bittrex?</h2>
+            <p>
+                Bittrex is a Seattle-based cryptocurrency exchange founded in 2014. Bittrex stood out as a security-focused centralized exchange, offering 2FA to all users early on. In addition, they employ a multi-wallet strategy such that most crypto assets are stored in cold storage at any given time. Bittrex supports individual and corporate accounts and allows the trading of over 400 cryptocurrencies, including the major ones like Bitcoin (BTC), Ethereum (ETH), Solana (SOL), and Cardano (ADA). They also offer a mobile app to view your Bittrex portfolio and trade on the go.<br></br>
+                Bittrex has historically been a crypto-to-crypto exchange, although now does support the ability to buy certain crypto assets with fiat, which requires customer verification. They have a <a href="https://bittrex.zendesk.com/hc/en-us/articles/115000199651-Bittrex-fees>fee schedule</a> based on whether you're a maker (creating liquidity on exchange) or taker (reducing liquidity).
+            </p>
+            <h2>How are Bittrex transactions taxed?</h2>
+            <p>
+                How crypto transactions are taxed will depend on factors such as how and when the assets were received and spent. Read our <a href="https://www.cointracker.io/blog/crypto-tax-guide">Crypto tax guide</a> for more.
+            </p>
+            <h2>What forms does Bittrex provide?</h2>
+            <p>
+                CoinTracker has partnered with Bittrex for a comprehensive tax center. You can use the Bittrex+Cointracker integration to generate form 8949 to file your crypto taxes.
+            </p>
+            <h2>How does CoinTracker work with Bittrex?</h2>
+            <p>
+                <div class="instructions api-importer">
+                    <ol class="mb-2">
+                        <li>Open the Bittrex <strong><a href="https://bittrex.com/Manage?view=api" target="_blank" rel="noopener noreferrer">API Keys<svg class="svg-inline--fa fa-external-link-alt fa-w-18 ml-1" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="external-link-alt" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" data-fa-i2svg=""><path fill="currentColor" d="M576 24v127.984c0 21.461-25.96 31.98-40.971 16.971l-35.707-35.709-243.523 243.523c-9.373 9.373-24.568 9.373-33.941 0l-22.627-22.627c-9.373-9.373-9.373-24.569 0-33.941L442.756 76.676l-35.703-35.705C391.982 25.9 402.656 0 424.024 0H552c13.255 0 24 10.745 24 24zM407.029 270.794l-16 16A23.999 23.999 0 0 0 384 303.765V448H64V128h264a24.003 24.003 0 0 0 16.97-7.029l16-16C376.089 89.851 365.381 64 344 64H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V287.764c0-21.382-25.852-32.09-40.971-16.97z"></path></svg><!-- <i class="fas fa-external-link-alt ml-1" aria-hidden="true"></i> --></a></strong> page</li>
+                        <li>Click the <strong>Add new key...</strong> button</li>
+                        <li>Enable the <strong>READ INFO</strong> permission for the new key</li>
+                        <li>Click <strong>Save</strong></li>
+                        <li>If applicable, enter your <strong>two-factor authentication code</strong></li>
+                        <li>Copy the <strong>Key</strong> and <strong>Secret</strong></li>
+                    </ol>
+                    You can also follow along <a href="https://community.cointracker.io/t/how-to-import-your-bittrex-account-to-cointracker/364" target="_blank" rel="noopener noreferrer">our step-by-step guide</a>
+                </div>
+                <div class="instructions file-importer d-none">
+                    <div class="mb-5">
+                        <div>To import your trade history from Bittrex, follow these steps:</div>
+                        <ol>
+                            <li>Open the Bittrex <strong><a href="https://bittrex.com/History" target="_blank" rel="noopener noreferrer">Orders<svg class="svg-inline--fa fa-external-link-alt fa-w-18 ml-1" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="external-link-alt" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" data-fa-i2svg=""><path fill="currentColor" d="M576 24v127.984c0 21.461-25.96 31.98-40.971 16.971l-35.707-35.709-243.523 243.523c-9.373 9.373-24.568 9.373-33.941 0l-22.627-22.627c-9.373-9.373-9.373-24.569 0-33.941L442.756 76.676l-35.703-35.705C391.982 25.9 402.656 0 424.024 0H552c13.255 0 24 10.745 24 24zM407.029 270.794l-16 16A23.999 23.999 0 0 0 384 303.765V448H64V128h264a24.003 24.003 0 0 0 16.97-7.029l16-16C376.089 89.851 365.381 64 344 64H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V287.764c0-21.382-25.852-32.09-40.971-16.97z"></path></svg><!-- <i class="fas fa-external-link-alt ml-1" aria-hidden="true"></i> --></a></strong> page</li>
+                            <li>Click on <strong>Download History</strong> to download your order history for each year that you had trades</li>
+                            <li>Import the downloaded files, one at a time</li>
+                        </ol>
+                        For more details, follow <a href="https://community.cointracker.io/t/how-to-import-your-bittrex-account-to-cointracker/364" target="_blank" rel="noopener noreferrer">these instructions</a>
+                    </div>
+                </div>
+                <div class="mt-4 mb-3">
+                    <a class="btn btn-primary px-5" href="/add_wallet?t=bittrex">Add Bittrex Account</a>
+                </div>
+            </p>
+            """,
+        "faqs": [
+            {
+                "question": "How do I get a Bittrex CSV?",
+                "answer": "CoinTracker has a direct API integration with Bittrex, so you can directly link to import transactions without having to download a CSV.",
+            },
+            {
+                "question": "How do I get my 1099 from Bittrex?",
+                "answer": "You can download your 1099 form by clicking the Account tab in the upper right corner, selecting 'Tax Documents,' then clicking on the 'PDF' to Download your 1099. Note that 1099's won't be accurate if you've had transfers. Instead, you can use the Bittrex↔CoinTracker integration to get form 8949 which will be accurate. ",
+            },
+            {
+                "question": "What fees does Bittrex charge?",
+                "answer": "Bittrex charges maker and taker fees on transactions as you carry them out on your account. You can see the fee schedule <a href='https://bittrex.zendesk.com/hc/en-us/articles/115000199651-Bittrex-fees'>here</a>.",
+            },
+            {
+                "question": "Is Bittrex safe?",
+                "answer": "Bittrex is one of the oldest crypto exchanges in the US, starting in 2014. They have had an emphasis on security from day one, where every transaction requires 2FA and most assets remain in cold storage. Bittrex has never been hacked or lost user funds. However, Bittrex is a centralized exchange which means they control your coins vs. a hardware wallet that would be fully yours and stored offline. There is a security vs. convenience tradeoff but Bittrex has been trusted by hundreds of thousands of users to date.",
+            },
+        ],
+    },
+    {
+        "slug": "nicehash",
+        "nice_name": "NiceHash",
+        "website_url": "https://nicehash.com/",
+        "image_url": "https://s3-us-west-1.amazonaws.com/coin-tracker-public/static/images/exchanges/nicehash.png",
+        "hide_instructions": True,
+        "description": """
+            <h2>What is NiceHash?</h2>
+            <p>
+                NiceHash is a a global cryptocurrency exchange and hash power broker founded by Marko Kobal and Matjaž Škorjanc in 2014. With over <a href="https://www.nicehash.com/blog/post/nicehash-everything-crypto-in-one-place">2.5 million users</a> (2022), it is one of the largest crypto mining companies in the world.
+            <br>
+            </br>
+                NiceHash allows users to rent out their excess computing power so others can use it to mine cryptocurrencies. Miners selling their computing power receive payments in <a href="https://www.cointracker.io/price/bitcoin">Bitcoin</a>, while buyers can buy "hash power" to mine the cryptocurrency of their choice. NiceHash's marketplace is an excellent spot for miners to earn money and buyers to get the hash power they need to mine cryptocurrency.
+            <br>
+            </br>
+                NiceHash recently launched a new cryptocurrency exchange platform called <a href="https://www.nicex.com">NiceX</a>. This platform allows users to trade cryptocurrencies using their NiceHash accounts.
+            <br>
+            </br>
+                NiceHash allows its users to:
+                <ul>
+                    <li>Mine cryptocurrencies
+                    <li>Buy hash power
+                    <li>Store, deposit, and withdraw cryptocurrencies
+                    <li>Exchange cryptocurrency
+                    <li>Buy crypto with EUR, USD, and other fiat currencies
+                </ul>
+                The platform offers features for both beginners and advanced miners.
+                <ul>
+                    <li>For beginners — NiceHash provides a simple interface and easy-to-use tools to buy and sell hashing power
+                    <li>For advanced miners — NiceHash offers a range of features, including a hash power marketplace, hash rate calculator, API, and profitability switching
+                    <li>The hash rate calculator allows you to input your hash rate and power consumption to see how much you earn per day, week, or month
+                    <li>The API lets you integrate your NiceHash account with third-party software
+                    <li>The profitability switching feature allows you to automatically switch to the most profitable coin at any given time
+                </ul>
+                NiceHash also offers a range of tools to help miners optimize their earnings. These include a <a href="https://www.nicehash.com/profitability-calculator">profitability calculator</a>, a mining pool explorer, and a <a href=https://www.nicehash.com/blog/post/how-to-build-a-mining-rig-in-2021-part-1">mining rig builder</a>.
+            </p>
+            <h2>What are the pros and cons of NiceHash?</h2>
+            <p>
+            <strong>NiceHash Pros</strong>
+            <ul>
+                <li>Simple and easy to use</li>
+                <li>No restriction on the size of <a href="https://robinhood.com/us/en/support/articles/cryptocurrency-hashrate/">hashrate</a> acquired</li>
+                <li>Helps miners smoothly switch between different hashing algorithms</li>
+                <li>Allows internal exchange of funds between multiple wallets</li>
+                <li>Ability to cancel orders for NiceHash power</li>
+                <li>NiceHash wallets to store cryptocurrencies</li>
+                <li><a href="https://www.nicehash.com/support/general-help/nicehash-service/referral-programs">Referral or affiliate program</a></li>
+                <li>Users can earn passive income in Bitcoin</li>
+                <li>Low fees</li>
+                <li>Stable payments</li>
+                <li>Part of the crypto industry for more than six years</li>
+            </ul>
+            </p>
+            <p>
+            <strong>NiceHash Cons</strong>
+            <ul>
+                <li>Less profitable than a mining pool</li>
+                <li>Supports only BTC payment methods</li>
+                <li>Not suitable for long-term investments</li>
+                <li>Switching between NiceHash algorithms exhausts GPU cards</li>
+            </ul>
+            </p>
+            <h2>How are NiceHash transactions taxed?</h2>
+            <p>
+            Most countries around the world consider cryptocurrency as an asset.
+            Cryptocurrency trades are considered taxable events. So if you're making crypto trades, you're liable for <a href="https://www.cointracker.io/blog/crypto-tax-guide">crypto taxes</a>.
+            If you're a NiceHash user, your taxes fall into two categories:
+            <p>
+            <strong>Taxes for mining</strong>
+                <ul>
+                    <li>You'll pay <strong>income tax on mining rewards</strong>:
+                        <ul>
+                            <li>Based on the fair market value of your mined coins when you receive them</li>
+                            <li>At a rate dependent on your income tax bracket</li>
+                        </ul>
+                    </li>
+                </ul>
+            </p>
+            <p>
+            <strong>Taxes for trading</strong>
+                <ul>
+                    <li>You'll pay <strong>capital gains tax on your profit</strong> when you:
+                        <ul>
+                            <li>Sell your mining rewards</li>
+                            <li>Trade cryptocurrency for another cryptocurrency or fiat</li>
+                            <li>Trade cryptocurrency for goods and services</li>
+                        </ul>
+                    </li>
+                </ul>
+            </p>
+            <strong>Note</strong>: Mining tax rates and benefits vary depending on whether you're a <a href="https://www.cointracker.io/blog/how-is-cryptocurrency-mining-taxed">hobbyist or business miner</a>.
+            <br>
+            </br>
+            <strong>If you're a business miner</strong>:
+                <ul>
+                    <li>You can deduct your expenses — like the costs of electricity, hardware, and rented space — from your taxes</li>
+                    <li>You'll be subject to an additional 15.3% self-employment tax</li>
+                </ul>
+            <strong>If you're a hobbyist miner</strong>:
+                <ul>
+                    <li>You'll be taxed on any profits without tax benefits</li>
+                </ul>
+            </p>
+            <h2>What forms does NiceHash provide?</h2>
+            <p>
+            While NiceHash lets you download your transaction history, it doesn't provide any tax forms, income tax reports, financial statements, or end-of-year statements.
+            However, trading on NiceHash is taxable, and it is your responsibility to report your taxes to the relevant tax authorities accurately.
+            You can get your transaction history from NiceHash by:
+                <ul>
+                    <li>Manually exporting it as a CSV file</li>
+                    <li>Connecting to any crypto tax software like CoinTracker via API</li>
+                </ul>
+            At present, Nicehash doesn't report to the IRS, but the IRS and other tax authorities can still track your cryptocurrency transactions. Therefore, you should file your taxes on time to avoid any penalties.
+            </p>
+            <h2>How does CoinTracker work with NiceHash?</h2>
+            <p>
+                CoinTracker automatically syncs with NiceHash's API. Connect your account to see your historical transactions and balances.
+                <div class="col-xl-8 col-centered pt-3">
+                <h2 class="h4 mb-4">
+                Connecting your NiceHash account to CoinTracker
+                </h2>
+                    <ol class="mb-5">
+                        <li>Open the Nicehash and <strong><a href="https://www.nicehash.com/my/settings/keys" target="_blank" rel="noopener noreferrer">navigate to Settings and API Keys<svg class="svg-inline--fa fa-external-link-alt fa-w-18 ml-1" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="external-link-alt" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" data-fa-i2svg=""><path fill="currentColor" d="M576 24v127.984c0 21.461-25.96 31.98-40.971 16.971l-35.707-35.709-243.523 243.523c-9.373 9.373-24.568 9.373-33.941 0l-22.627-22.627c-9.373-9.373-9.373-24.569 0-33.941L442.756 76.676l-35.703-35.705C391.982 25.9 402.656 0 424.024 0H552c13.255 0 24 10.745 24 24zM407.029 270.794l-16 16A23.999 23.999 0 0 0 384 303.765V448H64V128h264a24.003 24.003 0 0 0 16.97-7.029l16-16C376.089 89.851 365.381 64 344 64H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48V287.764c0-21.382-25.852-32.09-40.971-16.97z"></path></svg><!-- <i class="fas fa-external-link-alt ml-1" aria-hidden="true"></i> --></a></strong> page</li>
+                        <li>Click <strong>Create New API Key</strong> button</li>
+                        <li>Enter the name of the key</li>
+                        <li>Select only <strong>view/read</strong> permissions</li>
+                        <li>Click <strong>Generate Key</strong></li>
+                        <li>Confirm the new API key from the <strong>verification email</strong> you receive from Nicehash</li>
+                        <li>Copy the <strong>API Key</strong> and <strong>API Key Secret</strong></li>
+                        <li>Copy the <strong>Organization ID</strong> on the API keys page</li>
+                    </ol>
+                <div class="mt-4 mb-3">
+                <a class="btn btn-primary px-5" href="/add_wallet?t=nicehash">Add NiceHash Account</a>
+                </div>
+            </p>
+            """,
+        "faqs": [
+            {
+                "question": "What is hash power, and why would anyone buy it?",
+                "answer": """Hash power" (or "hashing power") is the power your computer uses to solve different hashing algorithms. These algorithms are used to generate new cryptocurrencies and allow transactions between cryptocurrencies. This process of generating new cryptocurrencies is called mining. When mining on NiceHash, you're selling your hash power to buyers who want to mine cryptocurrency but don't have the mining equipment. Buyers will pay "rent" in Bitcoin to use your hash power.""",
+            },
+            {
+                "question": "What is the difference between NiceHash Miner and NiceHash Quick Miner?",
+                "answer": "NiceHash Miner is free software that connects your PC or mining rig to the NiceHash hash-power marketplace. It allows you to rent your hash power for Bitcoin. NiceHash Quick Miner is a similar software but has two versions. The tryout version lets new users try mining without registration, while the experienced version is meant for more familiar users.",
+            },
+            {
+                "question": "What Is the PPS Reward System?",
+                "answer": "PPS stands for ""pay-per-share."" This means the miner is paid for each valid contributed share. PPS ensures that providers are paid in full for all the high-quality work produced by their rigs. Buyers will only pay 100%% for work submitted to buyers' pools.",
+            },
+            {
+                "question": "How much can you earn in NiceHash?",
+                "answer": "The amount you earn depends on the amount of hash power you provide to NiceHash. All your earnings will be paid in Bitcoin. Check the <a href='https://www.nicehash.com/profitability-calculator'>Profitability Calculator</a> to determine how much your hardware can earn in a day/month.",
+            },
+            {
+                "question": "What if my hardware is not listed in the Profitability Calculator?",
+                "answer": "NiceHash supports almost all CPU and GPU cards and a majority of ASIC miners, but the Profitability Calculator doesn't contain all mining-supported hardware. To find out if your hardware works well for selling hash power with NiceHash, download the NiceHash Miner and run the benchmark.",
+            },
+            {
+                "question": "What is NiceHash's referral program?",
+                "answer": "NiceHash has an <a href='https://www.nicehash.com/mining-affiliate'>affiliate program</a> that allows its users to earn passive income. Users get paid in Bitcoin when they bring new users to the NiceHash platform.",
+            },
+        ],
+    },
+    {
+        "slug": "exodus",
+        "nice_name": "Exodus",
+        "website_url": "https://www.exodus.com/",
+        "image_url": "https://coin-tracker-public.s3-us-west-1.amazonaws.com/static/images/exchanges/exodus.svg",
+        "hide_instructions": True,
+        "description": """
+            <h2>What is Exodus?</h2>
+            <p>
+                Founded in 2015, Exodus is a decentralized exchange (DEX) with a portfolio of desktop, mobile, and hardware wallets, supporting over 138 different currencies. It has its headquarters in Nebraska and provides a platform for peer-to-peer trading. As a decentralized exchange, it offers users complete control over their crypto assets. It does not hold their keys, funds, or any personal information about the accounts (meaning users get to be completely anonymous). Some major perks that the exchange offers include:
+                <ol>
+                    <li>No limits on trading amounts.
+                    <li>It can be used on mobile (iOS and Android) and desktop (Windows, Mac, and Linux).
+                    <li>It is integrated with Trezor Model T and Trezor One hardware.
+                    <li>Users can earn rewards for staking.
+                    <li>The latest improvements on the app include integration with NFTs, the Bitcoin Lightning network, and FTX.
+                </ol>
+            </p>
+            <h2>How are Exodus transactions taxed?</h2>
+            <p>
+                How crypto transactions are taxed will depend on factors such as how and when the assets were received and spent. Generally speaking, they are subject to capital gains tax. Read our <a href="https://www.cointracker.io/blog/crypto-tax-guide">Crypto tax guide</a> for more.
+            </p>
+            <h2>What forms does Exodus provide?</h2>
+            <p>
+                Exodus functions as a decentralized exchange with desktop/mobile wallets and a <a href="https://www.exodus.com/trezor-wallet/">Trezor hardware wallet</a>, so information regarding your keys, transactions, or things as simple as your name are known only to you. Exodus does not collect customer information to provide a tax report and doesn't issue 1099s to users or the IRS. Exodus provides a transaction history file you can upload to CoinTracker to manage your crypto portfolio and get tax statements. The integration steps are described below.
+            </p>
+            <h2>How does CoinTracker work with Exodus?</h2>
+            <p>
+                CoinTracker ingests your entire Exodus transaction history through a custom file upload, anc calculates your capital gains liability from there.
+                <div class="col-xl-8 col-centered pt-3">
+                <h2 class="h4 mb-4">
+                Connecting your Exodus account to CoinTracker
+                </h2>
+                    <ol>
+                        <li>Open Exodus and export your Safe Report (<a href="https://support.exodus.io/article/191-safe-report" target="_blank" rel="noopener noreferrer">learn more</a>)</li>
+                        <li>Upload the .zip file</li>
+                    </ol>
+                <div>
+                This will import all existing trades, and new transactions will be synced automatically going forward.
+                </div>
+                <div class="mt-4 mb-3">
+                <a class="btn btn-primary px-5" href="/add_wallet?t=exodus">Add Exodus Account</a>
+                </div>
+
+                </div>
+            </p>
+            """,
+        "faqs": [
+        ],
+    },
+
+]
+
+
+def run():
+    for update in updates:
+        account_type = db.session.query(AccountTypeEx).filter(AccountTypeEx.slug == update["slug"]).first()
+        if not account_type:
+            account_type = AccountTypeEx(
+                slug=update["slug"],
+                nice_name=update["nice_name"],
+                website_url=update["website_url"],
+                image_url=update["image_url"],
+            )
+
+        if not account_type.info:
+            account_type.info = {}
+        if "thumbnail_image_url" in update:
+            account_type.info["thumbnail_image_url"] = update["thumbnail_image_url"]
+        if "show_as_exchange_page" in update:
+            account_type.info["show_as_exchange_page"] = update["show_as_exchange_page"]
+        if "faqs" in update:
+            account_type.info["faqs"] = update["faqs"]
+        if "description" in update:
+            account_type.description = update["description"]
+        if "hide_instructions" in update:
+            account_type.info["hide_instructions"] = update["hide_instructions"]
+
+        flag_modified(account_type, "info")
+        db.session.add(account_type)
+
+    db.session.commit()
+
+
+if __name__ == "__main__":
+    run()
+    
